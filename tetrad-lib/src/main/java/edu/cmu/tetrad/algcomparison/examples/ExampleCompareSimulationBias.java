@@ -23,12 +23,13 @@ package edu.cmu.tetrad.algcomparison.examples;
 
 import edu.cmu.tetrad.algcomparison.Comparison;
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithms;
-import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.*;
+import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.Fci;
+import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.Gfci;
+import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Pc;
 import edu.cmu.tetrad.algcomparison.graph.RandomForward;
-import edu.cmu.tetrad.algcomparison.independence.FisherZ;
-import edu.cmu.tetrad.algcomparison.score.MVPBicScore;
-import edu.cmu.tetrad.algcomparison.score.SemBicScore;
-import edu.cmu.tetrad.algcomparison.simulation.SemSimulation;
+import edu.cmu.tetrad.algcomparison.independence.ChiSquare;
+import edu.cmu.tetrad.algcomparison.score.BdeuScore;
+import edu.cmu.tetrad.algcomparison.simulation.SelectionBiasSimulation;
 import edu.cmu.tetrad.algcomparison.simulation.Simulations;
 import edu.cmu.tetrad.algcomparison.statistic.*;
 import edu.cmu.tetrad.util.Parameters;
@@ -38,15 +39,37 @@ import edu.cmu.tetrad.util.Parameters;
  *
  * @author jdramsey
  */
-//https://arxiv.org/abs/1607.08110
-public class ExampleCompareSimulation {
+
+//        https://arxiv.org/abs/1607.08110
+
+public class ExampleCompareSimulationBias {
     public static void main(String... args) {
         Parameters parameters = new Parameters();
-        parameters.set("numRuns", 10);
-        parameters.set("numMeasures", 10);
-        parameters.set("avgDegree", 4, 6);
-        parameters.set("sampleSize", 500);
-        parameters.set("alpha", 1e-4, 1e-3, 1e-2);
+        /* Graph Params */
+        parameters.set("numMeasures", 3);
+        parameters.set("minOutdegree", 1);
+        parameters.set("maxOutdegree", 2);
+        parameters.set("minIndegree", 1);
+        parameters.set("maxIndegree", 2);
+        parameters.set("avgDegree", 2);
+        parameters.set("maxDegree", 2);
+//        parameters.set("numCategories", 4);
+        parameters.set("minCategories", 2);
+        parameters.set("maxCategories", 4);
+        parameters.set("saveLatentVars", false);
+
+        /* Data Params*/
+        parameters.set("sampleSize", 10);
+        parameters.set("biasedEdges", 1);
+
+        /* Simulation params*/
+        parameters.set("differentGraphs", true);
+        parameters.set("numRuns", 1);
+        parameters.set("alpha", 1e-4);
+
+
+        /* We should assign parameters here */
+        /* Ideally 3 Variables, each with 3 categories, 1000 multinomial samples per var */
 
         Statistics statistics = new Statistics();
 
@@ -54,10 +77,10 @@ public class ExampleCompareSimulation {
         statistics.add(new AdjacencyRecall());
         statistics.add(new ArrowheadPrecision());
         statistics.add(new ArrowheadRecall());
-        statistics.add(new MathewsCorrAdj());
-        statistics.add(new MathewsCorrArrow());
-        statistics.add(new F1Adj());
-        statistics.add(new F1Arrow());
+//        statistics.add(new MathewsCorrAdj());
+//        statistics.add(new MathewsCorrArrow());
+//        statistics.add(new F1Adj());
+//        statistics.add(new F1Arrow());
         statistics.add(new SHD());
         statistics.add(new ElapsedTime());
 
@@ -66,14 +89,18 @@ public class ExampleCompareSimulation {
 
         Algorithms algorithms = new Algorithms();
 
-        algorithms.add(new Pc(new FisherZ()));
-        algorithms.add(new Cpc(new FisherZ(), new Fges(new SemBicScore(), false)));
-        algorithms.add(new PcStable(new FisherZ()));
-        algorithms.add(new CpcStable(new FisherZ()));
+        algorithms.add(new Pc(new ChiSquare()));
+        algorithms.add(new Fci(new ChiSquare()));
+        algorithms.add(new Gfci(new ChiSquare(), new BdeuScore()));
+//        algorithms.add(new Cpc(new FisherZ(), new Fges(new SemBicScore(), false)));
+//        algorithms.add(new PcStable(new FisherZ()));
+//        algorithms.add(new CpcStable(new FisherZ()));
+
+
 
         Simulations simulations = new Simulations();
 
-        simulations.add(new SemSimulation(new RandomForward()));
+        simulations.add(new SelectionBiasSimulation(new RandomForward()));
 
         Comparison comparison = new Comparison();
 

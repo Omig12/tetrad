@@ -24,6 +24,8 @@ public class ParamDescriptions {
         map.put("maxIndegree", new ParamDescription("Maximum indegree of graph (min = 1)", 100, 1, Integer.MAX_VALUE));
         map.put("maxOutdegree", new ParamDescription("Maximum outdegree of graph (min = 1)", 100, 1, Integer.MAX_VALUE));
 
+        map.put("biasedEdges", new ParamDescription("Amount of biased edges in graph (min = 0)", 0, 0, Integer.MAX_VALUE));
+
         map.put("connected", new ParamDescription("Yes if graph should be connected", false));
         map.put("sampleSize", new ParamDescription("Sample size (min = 1)", 1000, 1, Integer.MAX_VALUE));
         map.put("numRuns", new ParamDescription("Number of runs (min = 1)", 1, 1, Integer.MAX_VALUE));

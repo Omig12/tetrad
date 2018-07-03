@@ -153,6 +153,17 @@
             <artifactId>jsoup</artifactId>
             <version>1.11.2</version>
         </dependency>
+        <dependency>
+            <groupId>edu.cmu</groupId>
+            <artifactId>tetrad</artifactId>
+            <version>6.5.1</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>edu.cmu</groupId>
+            <artifactId>tetrad</artifactId>
+            <version>6.5.1</version>
+        </dependency>
 
     </dependencies>
 
