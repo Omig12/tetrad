@@ -90,7 +90,7 @@ public class TestSelectionBias {
 
         System.out.println("True Graph: " + graph.getEdges());
 
-        SelectionBias testing = new SelectionBias(graph,1);
+        SelectionBias testing = new SelectionBias(graph,2);
 
         System.out.println("Bias Graph: " + testing.biasGraph.getEdges());
 

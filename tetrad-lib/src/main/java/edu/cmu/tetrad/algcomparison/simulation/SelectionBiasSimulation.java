@@ -12,6 +12,7 @@ import edu.cmu.tetrad.data.SelectionBias;
 import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.util.Parameters;
+import edu.cmu.tetrad.util.RandomUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,48 +24,39 @@ import java.util.List;
 public class SelectionBiasSimulation implements Simulation {
 
     static final long serialVersionUID = 23L;
-    private RandomGraph randomGraph;
+    private final RandomGraph randomGraph;
     private BayesPm pm;
     private BayesIm im;
     private List<DataSet> dataSets = new ArrayList<>();
     private List<Graph> graphs = new ArrayList<>();
-    private List<BayesIm> ims = new ArrayList<>();
+    private final List<BayesIm> ims = new ArrayList<>();
 
     public SelectionBiasSimulation(RandomGraph graph) {
         this.randomGraph = graph;
     }
 
-
-    public SelectionBiasSimulation(BayesPm pm) {
-        this.randomGraph = new SingleGraph(pm.getDag());
-        this.pm = pm;
-    }
-
-    public SelectionBiasSimulation(BayesIm im) {
-        this.randomGraph = new SingleGraph(im.getDag());
-        this.im = im;
-        this.pm = im.getBayesPm();
-    }
-
     @Override
     public void createData(Parameters parameters) {
         Graph graph = randomGraph.createGraph(parameters);
-
-        // Add class
         dataSets = new ArrayList<>();
         graphs = new ArrayList<>();
-
         for (int i = 0; i < parameters.getInt("numRuns"); i++) {
+            //noinspection SpellCheckingInspection,SpellCheckingInspection
             System.out.println("Simulating dataset #" + (i + 1));
-
             if (parameters.getBoolean("differentGraphs") && i > 0) {
                 graph = randomGraph.createGraph(parameters);
             }
-
             graphs.add(graph);
-
-            DataSet dataSet = new SelectionBias(graph, parameters.getInt("biasedEdges")).BiasDataRowAlt(simulate(graph, parameters));
+            System.out.println("True graph: " + graph);
+            SelectionBias selection = new SelectionBias(graph, parameters.getInt("biasedEdges"));
+            System.out.println("Selection graph: " + selection.biasGraph);
+            DataSet dataSet = simulate(selection.biasGraph, parameters);
+            //noinspection SpellCheckingInspection
+            System.out.println("Bias Dataset: " + dataSet);
+            dataSet = selection.BiasDataCell(dataSet);
             dataSet.setName("" + (i + 1));
+            //noinspection SpellCheckingInspection
+            System.out.println("Clean Dataset: " + dataSet);
             dataSets.add(dataSet);
         }
     }
@@ -127,31 +119,24 @@ public class SelectionBiasSimulation implements Simulation {
 
     private DataSet simulate(Graph graph, Parameters parameters) {
         boolean saveLatentVars = parameters.getBoolean("saveLatentVars");
-
         try {
-            BayesIm im = this.im;
-
-            if (im == null) {
-                BayesPm pm = this.pm;
-
-                if (pm == null) {
-                    int minCategories = parameters.getInt("minCategories");
-                    int maxCategories = parameters.getInt("maxCategories");
-                    pm = new BayesPm(graph);
-                    im = new MlBayesIm(pm, MlBayesIm.RANDOM);
-                    ims.add(im);
-                    return im.simulateData(parameters.getInt("sampleSize"), saveLatentVars);
-                } else {
-                    im = new MlBayesIm(pm, MlBayesIm.RANDOM);
-                    this.im = im;
-                    ims.add(im);
-                    return im.simulateData(parameters.getInt("sampleSize"), saveLatentVars);
+            int minCategories = parameters.getInt("minCategories");
+            int maxCategories = parameters.getInt("maxCategories");
+            pm = new BayesPm(graph, minCategories, maxCategories);
+            im = new MlBayesIm(pm, MlBayesIm.RANDOM);
+            double lower = parameters.getDouble("minMissingness");
+            double upper = parameters.getDouble("maxMissingness");
+            for (int i = 0; i < im.getNumNodes(); i++) {
+                if (im.getNode(i).getName().startsWith("U")) {
+                    double p = RandomUtil.getInstance().nextUniform(lower, upper);
+                    for (int r = 0; r < im.getNumRows(i); r++) {
+                        im.setProbability(i, r, 0, p);
+                        im.setProbability(i, r, 1, 1 - p);
+                    }
                 }
-            } else {
-                ims = new ArrayList<>();
-                ims.add(im);
-                return im.simulateData(parameters.getInt("sampleSize"), saveLatentVars);
             }
+            ims.add(im);
+            return im.simulateData(parameters.getInt("sampleSize"), saveLatentVars);
         } catch (Exception e) {
             e.printStackTrace();
             throw new IllegalArgumentException("Sorry, I couldn't simulate from that Bayes IM; perhaps not all of\n"
@@ -159,9 +144,7 @@ public class SelectionBiasSimulation implements Simulation {
         }
     }
 
-
     public List<BayesIm> getBayesIms() {
-        return ims;
+        return this.ims;
     }
-
 }

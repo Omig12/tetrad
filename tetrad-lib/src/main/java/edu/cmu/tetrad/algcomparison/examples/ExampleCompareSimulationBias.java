@@ -1,8 +1,8 @@
 ///////////////////////////////////////////////////////////////////////////////
 // For information as to what this class does, see the Javadoc, below.       //
 // Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,       //
-// 2007, 2008, 2009, 2010, 2014, 2015 by Peter Spirtes, Richard Scheines, Joseph   //
-// Ramsey, and Clark Glymour.                                                //
+// 2007, 2008, 2009, 2010, 2014, 2015 by Peter Spirtes, Richard Scheines,    //
+// Joseph Ramsey, and Clark Glymour.                                         //
 //                                                                           //
 // This program is free software; you can redistribute it and/or modify      //
 // it under the terms of the GNU General Public License as published by      //
@@ -24,11 +24,9 @@ package edu.cmu.tetrad.algcomparison.examples;
 import edu.cmu.tetrad.algcomparison.Comparison;
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithms;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.Fci;
-import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.Gfci;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Pc;
 import edu.cmu.tetrad.algcomparison.graph.RandomForward;
 import edu.cmu.tetrad.algcomparison.independence.ChiSquare;
-import edu.cmu.tetrad.algcomparison.score.BdeuScore;
 import edu.cmu.tetrad.algcomparison.simulation.SelectionBiasSimulation;
 import edu.cmu.tetrad.algcomparison.simulation.Simulations;
 import edu.cmu.tetrad.algcomparison.statistic.*;
@@ -42,31 +40,32 @@ import edu.cmu.tetrad.util.Parameters;
 
 //        https://arxiv.org/abs/1607.08110
 
+@SuppressWarnings("SpellCheckingInspection")
 public class ExampleCompareSimulationBias {
     public static void main(String... args) {
         Parameters parameters = new Parameters();
         /* Graph Params */
-        parameters.set("numMeasures", 3);
-        parameters.set("minOutdegree", 1);
-        parameters.set("maxOutdegree", 2);
-        parameters.set("minIndegree", 1);
-        parameters.set("maxIndegree", 2);
-        parameters.set("avgDegree", 2);
-        parameters.set("maxDegree", 2);
-//        parameters.set("numCategories", 4);
-        parameters.set("minCategories", 2);
-        parameters.set("maxCategories", 4);
+        parameters.set("numMeasures", 8);
+//        parameters.set("minOutdegree", 1);
+//        parameters.set("maxOutdegree", 2);
+//        parameters.set("minIndegree", 1);
+//        parameters.set("maxIndegree", 2);
+//        parameters.set("avgDegree", 2);
+//        parameters.set("maxDegree", 2);
+        parameters.set("minCategories", 4);
+        parameters.set("maxCategories", 6);
         parameters.set("saveLatentVars", false);
 
         /* Data Params*/
-        parameters.set("sampleSize", 10);
-        parameters.set("biasedEdges", 1);
+        parameters.set("sampleSize", 1000);
+        parameters.set("biasedEdges", 5);
+        parameters.set("minMissingness", 0.3);
+        parameters.set("maxMissingness", 0.8);
 
         /* Simulation params*/
         parameters.set("differentGraphs", true);
-        parameters.set("numRuns", 1);
+        parameters.set("numRuns", 10);
         parameters.set("alpha", 1e-4);
-
 
         /* We should assign parameters here */
         /* Ideally 3 Variables, each with 3 categories, 1000 multinomial samples per var */
@@ -91,11 +90,10 @@ public class ExampleCompareSimulationBias {
 
         algorithms.add(new Pc(new ChiSquare()));
         algorithms.add(new Fci(new ChiSquare()));
-        algorithms.add(new Gfci(new ChiSquare(), new BdeuScore()));
+//        algorithms.add(new Gfci(new ChiSquare(), new BdeuScore()));
 //        algorithms.add(new Cpc(new FisherZ(), new Fges(new SemBicScore(), false)));
 //        algorithms.add(new PcStable(new FisherZ()));
 //        algorithms.add(new CpcStable(new FisherZ()));
-
 
 
         Simulations simulations = new Simulations();

@@ -25,6 +25,8 @@ public class ParamDescriptions {
         map.put("maxOutdegree", new ParamDescription("Maximum outdegree of graph (min = 1)", 100, 1, Integer.MAX_VALUE));
 
         map.put("biasedEdges", new ParamDescription("Amount of biased edges in graph (min = 0)", 0, 0, Integer.MAX_VALUE));
+        map.put("minMissingness", new ParamDescription("Minimum percent of missing data (min = 0.0)", 0.0, 0, 1.0));
+        map.put("maxMissingness", new ParamDescription("Maximum percent of missing data (max = 1.0)", 0.0, 0, 1.0));
 
         map.put("connected", new ParamDescription("Yes if graph should be connected", false));
         map.put("sampleSize", new ParamDescription("Sample size (min = 1)", 1000, 1, Integer.MAX_VALUE));
@@ -94,7 +96,6 @@ public class ParamDescriptions {
         map.put("pixelDigitalization", new ParamDescription("Pixel digitalization (min = 0.0)", 0.025, 0.0, Double.MAX_VALUE));
         map.put("includeDishAndChipColumns", new ParamDescription("Yes if Dish and Chip columns should be included in output", true));
 
-        map.put("numRuns", new ParamDescription("The number runs", 1));
         map.put("randomSelectionSize", new ParamDescription("The number of datasets that should be taken in each random sample", 1));
 
         map.put("maxit", new ParamDescription("MAXIT parameter (GLASSO) (min = 1)", 10000, 1, Integer.MAX_VALUE));
