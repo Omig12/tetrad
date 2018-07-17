@@ -1,8 +1,6 @@
 package edu.cmu.tetrad.util;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Stores descriptions of the parameters for the simulation box. All parameters
@@ -27,6 +25,7 @@ public class ParamDescriptions {
         map.put("biasedEdges", new ParamDescription("Amount of biased edges in graph (min = 0)", 0, 0, Integer.MAX_VALUE));
         map.put("minMissingness", new ParamDescription("Minimum percent of missing data (min = 0.0)", 0.0, 0, 1.0));
         map.put("maxMissingness", new ParamDescription("Maximum percent of missing data (max = 1.0)", 0.0, 0, 1.0));
+        map.put("effectiveSampleSize", new ParamDescription("Effective Sample Size after row-wise pruning (min = 0)", 0.0, 0.0, Integer.MAX_VALUE));
 
         map.put("connected", new ParamDescription("Yes if graph should be connected", false));
         map.put("sampleSize", new ParamDescription("Sample size (min = 1)", 1000, 1, Integer.MAX_VALUE));

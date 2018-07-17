@@ -65,7 +65,7 @@ import java.util.concurrent.RecursiveTask;
 public class Comparison {
 
 
-        public enum ComparisonGraph {true_DAG, Pattern_of_the_true_DAG, PAG_of_the_true_DAG}
+    public enum ComparisonGraph {true_DAG, Pattern_of_the_true_DAG, PAG_of_the_true_DAG}
 
     private boolean[] graphTypeUsed;
     private PrintStream out;
@@ -196,13 +196,16 @@ public class Comparison {
      */
     public void compareFromSimulations(String resultsPath, Simulations simulations, String outputFileName, Algorithms algorithms,
                                        Statistics statistics, Parameters parameters) {
-        this.resultsPath = resultsPath;
+        this.resultsPath = parameters.getString(resultsPath);
 
         // Create output file.
         try {
             File dir = new File(resultsPath);
             dir.mkdirs();
             File file = new File(dir, outputFileName);
+            if (file.exists()) {
+                file = new File(dir, outputFileName + " " + new Date());
+            }
             this.out = new PrintStream(new FileOutputStream(file));
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -439,7 +442,7 @@ public class Comparison {
             printStats(statTables, statistics, Mode.WorstCase, newOrder, algorithmSimulationWrappers, algorithmWrappers,
                     simulationWrappers, utilities, parameters);
         }
-
+        out.println("Try to output sample size here: " + parameters.getDouble("effectiveSampleSize"));
         out.close();
     }
 
@@ -458,7 +461,7 @@ public class Comparison {
         //int i = 0;
 
         dir = new File(dir0, "save");
-        
+
 //
 //        do {
 //            dir = new File(dir0, "Simulation" + (++i));
@@ -475,25 +478,25 @@ public class Comparison {
         //if(!dir.exists()){
         //	dir.mkdirs();
         //}
-        
+
         try {
-	    	int numDataSets = simulation.getNumDataModels();
-	    	if(numDataSets <= 0){
-	    		
-	    		File dir1 = new File(dir, "graph");
-	            File dir2 = new File(dir, "data");
-	
-	            dir1.mkdirs();
-	            dir2.mkdirs();
-	            
-	    		PrintStream out = new PrintStream(new FileOutputStream(new File(dir, "parameters.txt")));
-	            out.println(simulation.getDescription());
-	            out.println(parameters);
-	            out.close();
-	            
-	    		return;
-	    	}
-	        List<SimulationWrapper> simulationWrappers = getSimulationWrappers(simulation, parameters);
+            int numDataSets = simulation.getNumDataModels();
+            if (numDataSets <= 0) {
+
+                File dir1 = new File(dir, "graph");
+                File dir2 = new File(dir, "data");
+
+                dir1.mkdirs();
+                dir2.mkdirs();
+
+                PrintStream out = new PrintStream(new FileOutputStream(new File(dir, "parameters.txt")));
+                out.println(simulation.getDescription());
+                out.println(parameters);
+                out.close();
+
+                return;
+            }
+            List<SimulationWrapper> simulationWrappers = getSimulationWrappers(simulation, parameters);
 
             int index = 0;
 
@@ -505,14 +508,14 @@ public class Comparison {
                 simulationWrapper.createData(simulationWrapper.getSimulationSpecificParameters());
 
                 File subdir = dir;
-                if(simulationWrappers.size() > 1){
+                if (simulationWrappers.size() > 1) {
                     index++;
 
                     subdir = new File(dir, "" + index);
                     subdir.mkdirs();
                 }
 
-            	File dir1 = new File(subdir, "graph");
+                File dir1 = new File(subdir, "graph");
                 File dir2 = new File(subdir, "data");
 
                 dir1.mkdirs();

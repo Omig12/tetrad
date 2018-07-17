@@ -26,10 +26,14 @@ import edu.cmu.tetrad.algcomparison.algorithm.Algorithms;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.Fci;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Pc;
 import edu.cmu.tetrad.algcomparison.graph.RandomForward;
+import edu.cmu.tetrad.algcomparison.graph.RandomGraph;
 import edu.cmu.tetrad.algcomparison.independence.ChiSquare;
-import edu.cmu.tetrad.algcomparison.simulation.SelectionBiasSimulation;
+import edu.cmu.tetrad.algcomparison.simulation.SelectionBiasSimulationROWWISE;
+import edu.cmu.tetrad.algcomparison.simulation.SelectionBiasSimulationTESTWISE;
 import edu.cmu.tetrad.algcomparison.simulation.Simulations;
-import edu.cmu.tetrad.algcomparison.statistic.*;
+import edu.cmu.tetrad.algcomparison.statistic.ElapsedTime;
+import edu.cmu.tetrad.algcomparison.statistic.SHD;
+import edu.cmu.tetrad.algcomparison.statistic.Statistics;
 import edu.cmu.tetrad.util.Parameters;
 
 /**
@@ -40,31 +44,33 @@ import edu.cmu.tetrad.util.Parameters;
 
 //        https://arxiv.org/abs/1607.08110
 
-@SuppressWarnings("SpellCheckingInspection")
 public class ExampleCompareSimulationBias {
     public static void main(String... args) {
         Parameters parameters = new Parameters();
         /* Graph Params */
-        parameters.set("numMeasures", 8);
+        parameters.set("numMeasures", 100);
+        parameters.set("numLatents", 0);
+//        parameters.set("numMeasures", 10);
 //        parameters.set("minOutdegree", 1);
 //        parameters.set("maxOutdegree", 2);
 //        parameters.set("minIndegree", 1);
 //        parameters.set("maxIndegree", 2);
 //        parameters.set("avgDegree", 2);
 //        parameters.set("maxDegree", 2);
-        parameters.set("minCategories", 4);
+//        parameters.set("numCategories", 4);
+        parameters.set("minCategories", 2);
         parameters.set("maxCategories", 6);
         parameters.set("saveLatentVars", false);
 
         /* Data Params*/
         parameters.set("sampleSize", 1000);
-        parameters.set("biasedEdges", 5);
-        parameters.set("minMissingness", 0.3);
-        parameters.set("maxMissingness", 0.8);
+        parameters.set("biasedEdges", 33);
+        parameters.set("minMissingness", 0.05); // , 0.26, 0.51, 0.76);
+        parameters.set("maxMissingness", 0.15); // , 0.50, 0.75, 0.99);
 
         /* Simulation params*/
         parameters.set("differentGraphs", true);
-        parameters.set("numRuns", 10);
+        parameters.set("numRuns", 20);
         parameters.set("alpha", 1e-4);
 
         /* We should assign parameters here */
@@ -72,10 +78,10 @@ public class ExampleCompareSimulationBias {
 
         Statistics statistics = new Statistics();
 
-        statistics.add(new AdjacencyPrecision());
-        statistics.add(new AdjacencyRecall());
-        statistics.add(new ArrowheadPrecision());
-        statistics.add(new ArrowheadRecall());
+//        statistics.add(new AdjacencyPrecision());
+//        statistics.add(new AdjacencyRecall());
+//        statistics.add(new ArrowheadPrecision());
+//        statistics.add(new ArrowheadRecall());
 //        statistics.add(new MathewsCorrAdj());
 //        statistics.add(new MathewsCorrArrow());
 //        statistics.add(new F1Adj());
@@ -83,8 +89,8 @@ public class ExampleCompareSimulationBias {
         statistics.add(new SHD());
         statistics.add(new ElapsedTime());
 
-        statistics.setWeight("AP", 1.0);
-        statistics.setWeight("AR", 0.5);
+//        statistics.setWeight("AP", 1.0);
+//        statistics.setWeight("AR", 0.5);
 
         Algorithms algorithms = new Algorithms();
 
@@ -95,20 +101,21 @@ public class ExampleCompareSimulationBias {
 //        algorithms.add(new PcStable(new FisherZ()));
 //        algorithms.add(new CpcStable(new FisherZ()));
 
-
         Simulations simulations = new Simulations();
 
-        simulations.add(new SelectionBiasSimulation(new RandomForward()));
+        RandomGraph rGraph = new RandomForward();
+        simulations.add(new SelectionBiasSimulationTESTWISE(rGraph));
+        simulations.add(new SelectionBiasSimulationROWWISE(rGraph));
 
         Comparison comparison = new Comparison();
 
         comparison.setShowAlgorithmIndices(true);
         comparison.setShowSimulationIndices(true);
-        comparison.setSortByUtility(true);
-        comparison.setShowUtilities(true);
+        comparison.setSortByUtility(false);
+        comparison.setShowUtilities(false);
         comparison.setParallelized(true);
 
-        comparison.compareFromSimulations("comparison", simulations, algorithms, statistics, parameters);
+        comparison.compareFromSimulations("/home/israel/Documents/Gitstuff/Tetrad/Results", simulations, algorithms, statistics, parameters);
     }
 }
 

@@ -30,6 +30,9 @@ import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.GraphUtils;
 import edu.cmu.tetrad.graph.Node;
+import edu.cmu.tetrad.search.Fci;
+import edu.cmu.tetrad.search.IndTestChiSquare;
+import edu.cmu.tetrad.search.Pc;
 
 import java.io.File;
 import java.io.IOException;
@@ -61,14 +64,16 @@ public class TestSelectionBias {
         myGraph.addDirectedEdge(y2, y3);
 
         System.out.println(myGraph);
-
-        SelectionBias testing = new SelectionBias(myGraph,1);
+        int minCategories = 3;
+        int maxCategories = 6;
+        BayesPm pm = new BayesPm(myGraph, minCategories, maxCategories);
+        SelectionBias testing = new SelectionBias(myGraph, pm ,1);
         Graph biasGraph = testing.biasGraph;
 
         System.out.println(biasGraph);
 
-        BayesPm pm = new BayesPm(biasGraph);
-        BayesIm im = new MlBayesIm(pm, MlBayesIm.RANDOM);
+        BayesPm biasPm = new BayesPm(biasGraph, pm);
+        BayesIm im = new MlBayesIm(biasPm, MlBayesIm.RANDOM);
 
         /* Generate Random dataset */
         DataSet myData = im.simulateData(3, false);
@@ -86,24 +91,30 @@ public class TestSelectionBias {
     public void test2() {
 
         /* Create graph for testing purposes */
-        Graph graph = GraphUtils.randomGraph(5,0,5,4,4,4,true);
+        Graph graph = GraphUtils.randomGraph(3,0,2,2,2,2,true);
 
         System.out.println("True Graph: " + graph.getEdges());
 
-        SelectionBias testing = new SelectionBias(graph,2);
+        BayesPm pm = new BayesPm(graph, 2, 6);
+        SelectionBias testing = new SelectionBias(graph, pm,2);
 
         System.out.println("Bias Graph: " + testing.biasGraph.getEdges());
 
-        BayesPm pm = new BayesPm(testing.biasGraph);
-        BayesIm im = new MlBayesIm(pm, MlBayesIm.RANDOM);
+        BayesPm biasPm = new BayesPm(testing.biasGraph, pm);
+        BayesIm im = new MlBayesIm(biasPm, MlBayesIm.RANDOM);
 
         /* Generate Random dataset */
-        DataSet myData = im.simulateData(10, false);
+        DataSet myData = im.simulateData(100, false);
 
-        System.out.println("Data-set: " + myData);
+//        System.out.println("Data-set: " + myData);
+//
+//        System.out.println("Clean Data: " + testing.BiasDataRow(myData));
+//        System.out.println("Clean Data Alt: " + testing.BiasDataRowAlt(myData));
 
-        System.out.println("Clean Data: " + testing.BiasDataRow(myData));
-        System.out.println("Clean Data Alt: " + testing.BiasDataRowAlt(myData));
+        System.out.println(new Fci( new IndTestChiSquare(testing.BiasDataRowAlt(myData),0.05)).search());
+        System.out.println(new Fci( new IndTestChiSquare(testing.BiasDataCellAlt(myData),0.05)).search());
+        System.out.println(new Pc( new IndTestChiSquare(testing.BiasDataCellAlt(myData),0.05)).search());
+
 
     }
 

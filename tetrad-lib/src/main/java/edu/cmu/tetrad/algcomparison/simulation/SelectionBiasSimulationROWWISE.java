@@ -19,9 +19,8 @@ import java.util.List;
 
 /**
  * @author jdramsey
- *
  */
-public class SelectionBiasSimulation implements Simulation {
+public class SelectionBiasSimulationROWWISE implements Simulation {
 
     static final long serialVersionUID = 23L;
     private final RandomGraph randomGraph;
@@ -31,7 +30,7 @@ public class SelectionBiasSimulation implements Simulation {
     private List<Graph> graphs = new ArrayList<>();
     private final List<BayesIm> ims = new ArrayList<>();
 
-    public SelectionBiasSimulation(RandomGraph graph) {
+    public SelectionBiasSimulationROWWISE(RandomGraph graph) {
         this.randomGraph = graph;
     }
 
@@ -42,25 +41,29 @@ public class SelectionBiasSimulation implements Simulation {
         graphs = new ArrayList<>();
         for (int i = 0; i < parameters.getInt("numRuns"); i++) {
             //noinspection SpellCheckingInspection,SpellCheckingInspection
-            System.out.println("Simulating dataset #" + (i + 1));
+            System.out.println("Simulating Row-wise dataset #" + (i + 1));
             if (parameters.getBoolean("differentGraphs") && i > 0) {
                 graph = randomGraph.createGraph(parameters);
             }
             graphs.add(graph);
-            System.out.println("True graph: " + graph);
-            SelectionBias selection = new SelectionBias(graph, parameters.getInt("biasedEdges"));
-            System.out.println("Selection graph: " + selection.biasGraph);
+//            System.out.println("True graph: " + graph);
+            int minCategories = parameters.getInt("minCategories");
+            int maxCategories = parameters.getInt("maxCategories");
+            pm = new BayesPm(graph, minCategories, maxCategories);
+//            System.out.println(pm);
+            SelectionBias selection = new SelectionBias(graph, pm, parameters.getInt("biasedEdges"));
+            pm = selection.getPm();
+//            System.out.println("Selection graph: " + selection.biasGraph);
             DataSet dataSet = simulate(selection.biasGraph, parameters);
             //noinspection SpellCheckingInspection
-            System.out.println("Bias Dataset: " + dataSet);
-            dataSet = selection.BiasDataCell(dataSet);
+//            System.out.println("Bias Dataset: " + dataSet);
+            dataSet = selection.BiasDataRow(dataSet);
             dataSet.setName("" + (i + 1));
             //noinspection SpellCheckingInspection
-            System.out.println("Clean Dataset: " + dataSet);
+//            System.out.println("Clean Dataset: " + dataSet);
             dataSets.add(dataSet);
         }
     }
-
 
     @Override
     public DataModel getDataModel(int index) {
@@ -78,7 +81,7 @@ public class SelectionBiasSimulation implements Simulation {
 
     @Override
     public String getDescription() {
-        return "Selection Bias simulation using " + randomGraph.getDescription();
+        return "Selection Bias simulation using " + randomGraph.getDescription() + " and row-wise deletion";
     }
 
     @Override
@@ -116,25 +119,33 @@ public class SelectionBiasSimulation implements Simulation {
         return DataType.Discrete;
     }
 
+//            List<Node> nodes = pm.getVariables();
+//
+//            for (int i = 0; i < pm.getNumNodes(); i++) {
+//                Node node = nodes.get(i);
+//
+//                if (node.getName().startsWith("U")) {
+//                    pm.setNumCategories(pm.getNode(node.getName()), 2);
+//                }
+//            }
 
     private DataSet simulate(Graph graph, Parameters parameters) {
         boolean saveLatentVars = parameters.getBoolean("saveLatentVars");
         try {
-            int minCategories = parameters.getInt("minCategories");
-            int maxCategories = parameters.getInt("maxCategories");
-            pm = new BayesPm(graph, minCategories, maxCategories);
+
             im = new MlBayesIm(pm, MlBayesIm.RANDOM);
+//            System.out.println("pre" + im);
             double lower = parameters.getDouble("minMissingness");
             double upper = parameters.getDouble("maxMissingness");
-            for (int i = 0; i < im.getNumNodes(); i++) {
-                if (im.getNode(i).getName().startsWith("U")) {
-                    double p = RandomUtil.getInstance().nextUniform(lower, upper);
-                    for (int r = 0; r < im.getNumRows(i); r++) {
-                        im.setProbability(i, r, 0, p);
-                        im.setProbability(i, r, 1, 1 - p);
-                    }
+            int uvars = graph.getNumNodes()/2;
+            for (int i = uvars; i < graph.getNumNodes(); i++) {
+                double p = RandomUtil.getInstance().nextUniform(lower, upper);
+                for (int r = 0; r < im.getNumRows(i); r++) {
+                    im.setProbability(i, r, 0, p);
+                    im.setProbability(i, r, 1, 1 - p);
                 }
             }
+//            System.out.println("pos" + im);
             ims.add(im);
             return im.simulateData(parameters.getInt("sampleSize"), saveLatentVars);
         } catch (Exception e) {

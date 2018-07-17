@@ -1,6 +1,7 @@
 package edu.cmu.tetrad.data;
 
 import com.google.common.primitives.Ints;
+import edu.cmu.tetrad.bayes.BayesPm;
 import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.Node;
@@ -20,6 +21,7 @@ public class SelectionBias {
     private final Graph trueGraph;
     private final int biasedEdges;
     public final Graph biasGraph;
+    private final BayesPm pm;
     @SuppressWarnings("FieldCanBeLocal")
     private List<Node> trueNodes;
     @SuppressWarnings("FieldCanBeLocal")
@@ -27,10 +29,11 @@ public class SelectionBias {
     private DataSet trueData;
     private DataSet biasData;
 
-    public SelectionBias(Graph graph, int biasedEdges) {
+    public SelectionBias(Graph graph, BayesPm pm, int biasedEdges) {
         this.trueGraph = new EdgeListGraph(graph);
         this.biasedEdges = biasedEdges;
         this.biasGraph = biasGraph();
+        this.pm = new BayesPm(this.biasGraph, pm);
     }
 
     // Graph with selection variables for missingness simulation
@@ -44,8 +47,9 @@ public class SelectionBias {
             biasNodes.add(u);
             graph.addNode(u);
         }
+
         // Add random edges with conditions Xi -> Uj, Xi non-descendant of Xj;
-        int maxCount = trueNodes.size() * biasNodes.size();
+        int maxCount = (int) (Math.pow(trueNodes.size(), 2) - (trueGraph.getNumEdges() * trueGraph.getConnectivity()));
         int count = 0;
         for (int t = 0; t < this.biasedEdges; t++) {
             if (count > maxCount) {
@@ -79,6 +83,8 @@ public class SelectionBias {
                 }
             }
         }
+
+//        System.out.println("B data: " + dataSet);
         int[] cols = new int[vars];
         for (int i = 0; i < vars; i++) {
             cols[i] = (i + vars);
@@ -109,7 +115,7 @@ public class SelectionBias {
     public DataSet BiasDataCellAlt(DataSet dataSet) {
         this.trueData = dataSet;
         this.biasData = dataSet.copy();
-        System.out.println("True dataSet: " + this.trueData);
+//        System.out.println("True dataSet: " + this.trueData);
         Graph graph = new EdgeListGraph(this.biasGraph);
         graph.removeEdges(this.trueGraph.getEdges());
         int vars = (biasData.getNumColumns() / 2);
@@ -146,6 +152,10 @@ public class SelectionBias {
         }
         biasData.removeRows(Ints.toArray(removed));
         return biasData;
+    }
+
+    public BayesPm getPm(){
+        return this.pm;
     }
 }
 

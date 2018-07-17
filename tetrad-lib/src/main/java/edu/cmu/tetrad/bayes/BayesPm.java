@@ -470,8 +470,7 @@ public final class BayesPm implements PM, VariableSource, TetradSerializable {
             throw new IllegalArgumentException("Duplicate variable names.");
         }
 
-        DiscreteVariable variable =
-                new DiscreteVariable(node.getName(), categories);
+        DiscreteVariable variable = new DiscreteVariable(node.getName(), categories);
 
         variable.setNodeType(node.getNodeType());
 
