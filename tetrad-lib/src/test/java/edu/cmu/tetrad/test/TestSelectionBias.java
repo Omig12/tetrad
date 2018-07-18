@@ -26,13 +26,9 @@ import edu.cmu.tetrad.bayes.BayesPm;
 import edu.cmu.tetrad.bayes.MlBayesEstimator;
 import edu.cmu.tetrad.bayes.MlBayesIm;
 import edu.cmu.tetrad.data.*;
-import edu.cmu.tetrad.graph.EdgeListGraph;
-import edu.cmu.tetrad.graph.Graph;
-import edu.cmu.tetrad.graph.GraphUtils;
-import edu.cmu.tetrad.graph.Node;
-import edu.cmu.tetrad.search.Fci;
-import edu.cmu.tetrad.search.IndTestChiSquare;
-import edu.cmu.tetrad.search.Pc;
+import edu.cmu.tetrad.graph.*;
+import edu.cmu.tetrad.search.*;
+import edu.cmu.tetrad.util.RandomUtil;
 
 import java.io.File;
 import java.io.IOException;
@@ -51,41 +47,117 @@ public class TestSelectionBias {
 
         /* Create graph for testing purposes */
         List<Node> myNodes = new ArrayList<>();
-        Node y1 = new DiscreteVariable("y1", 4);
-        Node y2 = new DiscreteVariable("y2", 4);
-        Node y3 = new DiscreteVariable("y3", 4);
+//        Node y1 = new DiscreteVariable("X1", 3);
+        Node y2 = new DiscreteVariable("Sex", 2);
+        Node y3 = new DiscreteVariable("College", 4);
+        Node y4 = new DiscreteVariable("IQ", 4);
 
-        myNodes.add(y1);
+//        myNodes.add(y1);
         myNodes.add(y2);
         myNodes.add(y3);
+        myNodes.add(y4);
 
         Graph myGraph = new EdgeListGraph(myNodes);
-        myGraph.addDirectedEdge(y1, y2);
+//        myGraph.addDirectedEdge(y1, y2);
         myGraph.addDirectedEdge(y2, y3);
+        myGraph.addDirectedEdge(y4, y3);
 
-        System.out.println(myGraph);
-        int minCategories = 3;
-        int maxCategories = 6;
-        BayesPm pm = new BayesPm(myGraph, minCategories, maxCategories);
-        SelectionBias testing = new SelectionBias(myGraph, pm ,1);
+
+//        System.out.println(myGraph);
+        BayesPm pm = new BayesPm(myGraph);
+//        System.out.println(pm);
+        SelectionBias testing = new SelectionBias(myGraph, pm ,2);
         Graph biasGraph = testing.biasGraph;
 
         System.out.println(biasGraph);
 
-        BayesPm biasPm = new BayesPm(biasGraph, pm);
+        BayesPm biasPm = testing.getPm();
+//        System.out.println(biasPm);
         BayesIm im = new MlBayesIm(biasPm, MlBayesIm.RANDOM);
+//        System.out.println("pre" + im);
+//        int uvars = biasGraph.getNumNodes()/2;
+//        for (int i = uvars; i < biasGraph.getNumNodes(); i++) {
+//            double p = Math.pow(RandomUtil.getInstance().nextUniform(0.0, 1.0), 3);
+//            for (int r = 0; r < im.getNumRows(i); r++) {
+//                im.setProbability(i, r, 0, p);
+//                im.setProbability(i, r, 1, 1 - p);
+//            }
+//        }
+//        System.out.println("pos" + im);
 
         /* Generate Random dataset */
-        DataSet myData = im.simulateData(3, false);
+        DataSet myData = im.simulateData(1000, false);
 
-        System.out.println("Dataset: " + myData);
+//        System.out.println("Dataset: " + myData);
 
-        System.out.println("Cell wise: " + testing.BiasDataCell(myData));
-        System.out.println("Row wise: " + testing.BiasDataRow(myData));
+        System.out.println("Cell wise: " + testing.BiasDataCell(myData).getNumRows());
+        System.out.println("Row wise: " + testing.BiasDataRow(myData).getNumRows());
 
-        System.out.println("Cell wise alt: " + testing.BiasDataCellAlt(myData));
-        System.out.println("Row wise alt: " + testing.BiasDataRowAlt(myData));
+        System.out.println("Cell wise alt: " + testing.BiasDataCellAlt(myData).getNumRows());
+        System.out.println("Row wise alt: " + testing.BiasDataRowAlt(myData).getNumRows());
 
+        System.out.println();
+
+        System.out.println("True graph:" + myGraph.getEdges());
+
+        System.out.println("\n\tChi_Square_Tests\n");
+
+
+
+        System.out.println("FCI cell " + removeCircles(new Fci(new IndTestChiSquare(testing.BiasDataCell(myData),0.05)).search()).getEdges());
+        System.out.println("FCI row " + removeCircles(new Fci(new IndTestChiSquare(testing.BiasDataRow(myData),0.05)).search()).getEdges());
+
+        System.out.println("FCI cellalt " + removeCircles(new Fci(new IndTestChiSquare(testing.BiasDataCellAlt(myData),0.05)).search()).getEdges());
+        System.out.println("FCI rowalt " + removeCircles(new Fci(new IndTestChiSquare(testing.BiasDataRowAlt(myData),0.05)).search()).getEdges());
+
+        System.out.println("PC cell " + new Pc(new IndTestChiSquare(testing.BiasDataCell(myData),0.05)).search().getEdges());
+        System.out.println("PC row " + new Pc(new IndTestChiSquare(testing.BiasDataRow(myData),0.05)).search().getEdges());
+
+        System.out.println("PC cellalt " + new Pc(new IndTestChiSquare(testing.BiasDataCellAlt(myData),0.05)).search().getEdges());
+        System.out.println("PC rowalt " + new Pc(new IndTestChiSquare(testing.BiasDataRowAlt(myData),0.05)).search().getEdges());
+
+        System.out.println("\n\tG_Square_Test\n");
+
+        System.out.println("FCI cell " + removeCircles(new Fci(new IndTestGSquare(testing.BiasDataCell(myData),0.05)).search()).getEdges());
+        System.out.println("FCI row " + removeCircles(new Fci(new IndTestGSquare(testing.BiasDataRow(myData),0.05)).search()).getEdges());
+
+        System.out.println("FCI cellalt " + removeCircles(new Fci(new IndTestGSquare(testing.BiasDataCellAlt(myData),0.05)).search()).getEdges());
+        System.out.println("FCI rowalt " + removeCircles(new Fci(new IndTestGSquare(testing.BiasDataRowAlt(myData),0.05)).search()).getEdges());
+
+        System.out.println("PC cell " + new Pc(new IndTestGSquare(testing.BiasDataCell(myData),0.05)).search().getEdges());
+        System.out.println("PC row " + new Pc(new IndTestGSquare(testing.BiasDataRow(myData),0.05)).search().getEdges());
+
+        System.out.println("PC cellalt " + new Pc(new IndTestGSquare(testing.BiasDataCellAlt(myData),0.05)).search().getEdges());
+        System.out.println("PC rowalt " + new Pc(new IndTestGSquare(testing.BiasDataRowAlt(myData),0.05)).search().getEdges());
+//
+//        System.out.println("\n\tRegression_Test\n");
+//
+//        System.out.println("FCI cell " + new Fci(new IndTestRegression(testing.BiasDataCell(myData),0.05)).search().getEdges());
+//        System.out.println("FCI row " + new Fci(new IndTestRegression(testing.BiasDataRow(myData),0.05)).search().getEdges());
+//
+//        System.out.println("FCI cellalt " + new Fci(new IndTestRegression(testing.BiasDataCellAlt(myData),0.05)).search().getEdges());
+//        System.out.println("FCI rowalt " + new Fci(new IndTestRegression(testing.BiasDataRowAlt(myData),0.05)).search().getEdges());
+//
+//        System.out.println("PC cell " + new Pc(new IndTestRegression(testing.BiasDataCell(myData),0.05)).search().getEdges());
+//        System.out.println("PC row " + new Pc(new IndTestRegression(testing.BiasDataRow(myData),0.05)).search().getEdges());
+//
+//        System.out.println("PC cellalt " + new Pc(new IndTestRegression(testing.BiasDataCellAlt(myData),0.05)).search().getEdges());
+//        System.out.println("PC rowalt " + new Pc(new IndTestRegression(testing.BiasDataRowAlt(myData),0.05)).search().getEdges());
+
+    }
+
+
+    public Graph removeCircles(Graph pag) {
+        for (Edge x: pag.getEdges()) {
+            if (x.getEndpoint1() == Endpoint.CIRCLE) {
+                x.setEndpoint1(Endpoint.TAIL);
+            }
+            if (x.getEndpoint2() == Endpoint.CIRCLE) {
+                x.setEndpoint2(Endpoint.TAIL);
+            }
+        }
+
+        return pag;
     }
 
     public void test2() {
@@ -171,8 +243,8 @@ public class TestSelectionBias {
 
 
     public static void main(String...args) {
-//        new TestSelectionBias().test1();
-        new TestSelectionBias().test2();
+        new TestSelectionBias().test1();
+//        new TestSelectionBias().test2();
     }
 
 

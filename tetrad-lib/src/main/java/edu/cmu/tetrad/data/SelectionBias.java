@@ -5,6 +5,7 @@ import edu.cmu.tetrad.bayes.BayesPm;
 import edu.cmu.tetrad.graph.EdgeListGraph;
 import edu.cmu.tetrad.graph.Graph;
 import edu.cmu.tetrad.graph.Node;
+import edu.cmu.tetrad.graph.NodeType;
 import edu.cmu.tetrad.util.RandomUtil;
 
 import java.util.ArrayList;
@@ -44,6 +45,7 @@ public class SelectionBias {
         // Add biasNodes to biasGraph
         for (Node node : this.trueNodes) {
             Node u = new DiscreteVariable("U" + node.getName(), 2);
+            u.setNodeType(NodeType.LATENT);
             biasNodes.add(u);
             graph.addNode(u);
         }
@@ -157,6 +159,11 @@ public class SelectionBias {
     public BayesPm getPm(){
         return this.pm;
     }
+
+    public DataSet getDataset() {return this.biasData;}
+
+    public DataSet getSelectionDataset() {return this.trueData;}
+
 }
 
 //        public static DataSet getRow(int i) {

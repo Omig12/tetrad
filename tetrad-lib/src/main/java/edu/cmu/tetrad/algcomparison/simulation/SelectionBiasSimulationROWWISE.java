@@ -29,6 +29,7 @@ public class SelectionBiasSimulationROWWISE implements Simulation {
     private List<DataSet> dataSets = new ArrayList<>();
     private List<Graph> graphs = new ArrayList<>();
     private final List<BayesIm> ims = new ArrayList<>();
+    private List<Double> datasetSize = new ArrayList<>();
 
     public SelectionBiasSimulationROWWISE(RandomGraph graph) {
         this.randomGraph = graph;
@@ -57,11 +58,12 @@ public class SelectionBiasSimulationROWWISE implements Simulation {
             DataSet dataSet = simulate(selection.biasGraph, parameters);
             //noinspection SpellCheckingInspection
 //            System.out.println("Bias Dataset: " + dataSet);
-            dataSet = selection.BiasDataRow(dataSet);
+            dataSet = selection.BiasDataRowAlt(dataSet);
             dataSet.setName("" + (i + 1));
             //noinspection SpellCheckingInspection
 //            System.out.println("Clean Dataset: " + dataSet);
             dataSets.add(dataSet);
+            datasetSize.add((dataSet.getNumRows() * 1.0));
         }
     }
 
@@ -119,16 +121,6 @@ public class SelectionBiasSimulationROWWISE implements Simulation {
         return DataType.Discrete;
     }
 
-//            List<Node> nodes = pm.getVariables();
-//
-//            for (int i = 0; i < pm.getNumNodes(); i++) {
-//                Node node = nodes.get(i);
-//
-//                if (node.getName().startsWith("U")) {
-//                    pm.setNumCategories(pm.getNode(node.getName()), 2);
-//                }
-//            }
-
     private DataSet simulate(Graph graph, Parameters parameters) {
         boolean saveLatentVars = parameters.getBoolean("saveLatentVars");
         try {
@@ -137,9 +129,11 @@ public class SelectionBiasSimulationROWWISE implements Simulation {
 //            System.out.println("pre" + im);
             double lower = parameters.getDouble("minMissingness");
             double upper = parameters.getDouble("maxMissingness");
-            int uvars = graph.getNumNodes()/2;
+            int uvars = graph.getNumNodes() / 2;
             for (int i = uvars; i < graph.getNumNodes(); i++) {
+                //                double p = RandomUtil.getInstance().nextUniform(lower, upper);
                 double p = RandomUtil.getInstance().nextUniform(lower, upper);
+                p = p * p * p;
                 for (int r = 0; r < im.getNumRows(i); r++) {
                     im.setProbability(i, r, 0, p);
                     im.setProbability(i, r, 1, 1 - p);
@@ -158,4 +152,18 @@ public class SelectionBiasSimulationROWWISE implements Simulation {
     public List<BayesIm> getBayesIms() {
         return this.ims;
     }
+
+    public List<Double> getDatasetSizes() {
+        return this.datasetSize;
+    }
 }
+
+//            List<Node> nodes = pm.getVariables();
+//
+//            for (int i = 0; i < pm.getNumNodes(); i++) {
+//                Node node = nodes.get(i);
+//
+//                if (node.getName().startsWith("U")) {
+//                    pm.setNumCategories(pm.getNode(node.getName()), 2);
+//                }
+//            }

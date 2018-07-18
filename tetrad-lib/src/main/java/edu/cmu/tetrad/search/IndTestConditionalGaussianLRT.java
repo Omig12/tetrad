@@ -37,7 +37,7 @@ import java.util.*;
  * This test is valid for both ordinal and non-ordinal discrete searchVariables.
  * <p>
  * Assumed a conditional Gaussain model and uses a likelihood rat test.
- *
+ * </p>
  * @author Joseph Ramsey
  */
 public class IndTestConditionalGaussianLRT implements IndependenceTest {

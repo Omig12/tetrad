@@ -48,6 +48,7 @@ import edu.cmu.tetrad.search.SearchGraphUtils;
 import edu.cmu.tetrad.util.*;
 import org.reflections.Reflections;
 
+import javax.rmi.CORBA.Util;
 import java.io.*;
 import java.lang.reflect.Constructor;
 import java.text.DecimalFormat;
@@ -364,6 +365,17 @@ public class Comparison {
 //                    for (String param : simulation.getParameters()) {
 //                        out.println(param + " = " + simulation.getValue(param));
 //                    }
+                out.println();
+
+
+                int num_models = simulation.getNumDataModels();
+                double[] sizes = new double[num_models];
+                if (num_models > 0) {
+                    for (int i1 = 0; i1 < num_models; i1++) {
+                          sizes[i1] = (((DataSet) simulation.getDataModel(i1)).getNumRows());
+                    }
+                }
+                out.println("Average sample size: " + StatUtils.mean(sizes) + " out of :" + parameters.getInt("sampleSize") + " which makes: " + StatUtils.mean(sizes)/parameters.getDouble("sampleSize"));
 
                 out.println();
             }
@@ -442,7 +454,7 @@ public class Comparison {
             printStats(statTables, statistics, Mode.WorstCase, newOrder, algorithmSimulationWrappers, algorithmWrappers,
                     simulationWrappers, utilities, parameters);
         }
-        out.println("Try to output sample size here: " + parameters.getDouble("effectiveSampleSize"));
+
         out.close();
     }
 

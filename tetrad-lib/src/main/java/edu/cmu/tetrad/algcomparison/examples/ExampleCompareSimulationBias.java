@@ -24,16 +24,19 @@ package edu.cmu.tetrad.algcomparison.examples;
 import edu.cmu.tetrad.algcomparison.Comparison;
 import edu.cmu.tetrad.algcomparison.algorithm.Algorithms;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.Fci;
+import edu.cmu.tetrad.algcomparison.algorithm.oracle.pag.Gfci;
+import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Fges;
 import edu.cmu.tetrad.algcomparison.algorithm.oracle.pattern.Pc;
 import edu.cmu.tetrad.algcomparison.graph.RandomForward;
 import edu.cmu.tetrad.algcomparison.graph.RandomGraph;
+import edu.cmu.tetrad.algcomparison.independence.BDeuTest;
 import edu.cmu.tetrad.algcomparison.independence.ChiSquare;
+import edu.cmu.tetrad.algcomparison.independence.GSquare;
+import edu.cmu.tetrad.algcomparison.score.BdeuScore;
 import edu.cmu.tetrad.algcomparison.simulation.SelectionBiasSimulationROWWISE;
 import edu.cmu.tetrad.algcomparison.simulation.SelectionBiasSimulationTESTWISE;
 import edu.cmu.tetrad.algcomparison.simulation.Simulations;
-import edu.cmu.tetrad.algcomparison.statistic.ElapsedTime;
-import edu.cmu.tetrad.algcomparison.statistic.SHD;
-import edu.cmu.tetrad.algcomparison.statistic.Statistics;
+import edu.cmu.tetrad.algcomparison.statistic.*;
 import edu.cmu.tetrad.util.Parameters;
 
 /**
@@ -48,7 +51,7 @@ public class ExampleCompareSimulationBias {
     public static void main(String... args) {
         Parameters parameters = new Parameters();
         /* Graph Params */
-        parameters.set("numMeasures", 100);
+        parameters.set("numMeasures", 10);
         parameters.set("numLatents", 0);
 //        parameters.set("numMeasures", 10);
 //        parameters.set("minOutdegree", 1);
@@ -58,20 +61,20 @@ public class ExampleCompareSimulationBias {
 //        parameters.set("avgDegree", 2);
 //        parameters.set("maxDegree", 2);
 //        parameters.set("numCategories", 4);
-        parameters.set("minCategories", 2);
-        parameters.set("maxCategories", 6);
+        parameters.set("minCategories", 4);
+        parameters.set("maxCategories", 4);
         parameters.set("saveLatentVars", false);
 
         /* Data Params*/
-        parameters.set("sampleSize", 1000);
-        parameters.set("biasedEdges", 33);
-        parameters.set("minMissingness", 0.05); // , 0.26, 0.51, 0.76);
-        parameters.set("maxMissingness", 0.15); // , 0.50, 0.75, 0.99);
+        parameters.set("sampleSize", 500);
+        parameters.set("biasedEdges", 3);
+        parameters.set("minMissingness", 0.00); // , 0.26, 0.51, 0.76);
+        parameters.set("maxMissingness", 1.00); // , 0.50, 0.75, 0.99);
 
         /* Simulation params*/
         parameters.set("differentGraphs", true);
-        parameters.set("numRuns", 20);
-        parameters.set("alpha", 1e-4);
+        parameters.set("numRuns", 10);
+        parameters.set("alpha", 0.05);
 
         /* We should assign parameters here */
         /* Ideally 3 Variables, each with 3 categories, 1000 multinomial samples per var */
@@ -80,8 +83,8 @@ public class ExampleCompareSimulationBias {
 
 //        statistics.add(new AdjacencyPrecision());
 //        statistics.add(new AdjacencyRecall());
-//        statistics.add(new ArrowheadPrecision());
-//        statistics.add(new ArrowheadRecall());
+        statistics.add(new ArrowheadPrecision());
+        statistics.add(new ArrowheadRecall());
 //        statistics.add(new MathewsCorrAdj());
 //        statistics.add(new MathewsCorrArrow());
 //        statistics.add(new F1Adj());
@@ -89,13 +92,13 @@ public class ExampleCompareSimulationBias {
         statistics.add(new SHD());
         statistics.add(new ElapsedTime());
 
-//        statistics.setWeight("AP", 1.0);
-//        statistics.setWeight("AR", 0.5);
+        statistics.setWeight("AHP", 1.0);
+        statistics.setWeight("AHR", 0.5);
 
         Algorithms algorithms = new Algorithms();
 
-        algorithms.add(new Pc(new ChiSquare()));
-        algorithms.add(new Fci(new ChiSquare()));
+        algorithms.add(new Pc(new GSquare()));
+//        algorithms.add(new Fci(new GSquare()));
 //        algorithms.add(new Gfci(new ChiSquare(), new BdeuScore()));
 //        algorithms.add(new Cpc(new FisherZ(), new Fges(new SemBicScore(), false)));
 //        algorithms.add(new PcStable(new FisherZ()));
