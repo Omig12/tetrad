@@ -26,8 +26,10 @@ public class ConditionalCorrelation implements IndependenceWrapper {
 
     @Override
     public IndependenceTest getTest(DataModel dataSet, Parameters parameters) {
-        return new IndTestConditionalCorrelation(DataUtils.getContinuousDataSet(dataSet),
+        final IndTestConditionalCorrelation cci = new IndTestConditionalCorrelation(DataUtils.getContinuousDataSet(dataSet),
                 parameters.getDouble("alpha"));
+        cci.setNumFunctions(parameters.getInt("numBasisFunctions"));
+        return cci;
     }
 
     @Override
@@ -44,6 +46,7 @@ public class ConditionalCorrelation implements IndependenceWrapper {
     public List<String> getParameters() {
         List<String> params = new ArrayList<>();
         params.add("alpha");
+        params.add("numBasisFunctions");
         return params;
     }
 

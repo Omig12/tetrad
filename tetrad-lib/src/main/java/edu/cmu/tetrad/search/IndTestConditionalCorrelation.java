@@ -74,6 +74,15 @@ public final class IndTestConditionalCorrelation implements IndependenceTest {
      * Map from nodes to the indices.
      */
     private Map<Node, Integer> indices;
+
+    /**
+     * The number of functions to use in the basis.
+     */
+    private int numFunctions = 10;
+
+    /**
+     * True if verbose output should be printed.
+     */
     private boolean verbose = false;
 
     //==========================CONSTRUCTORS=============================//
@@ -83,7 +92,7 @@ public final class IndTestConditionalCorrelation implements IndependenceTest {
      * given data set (must be continuous). The given significance level is used.
      *
      * @param dataSet A data set containing only continuous columns.
-     * @param alpha   The alpha level of the test.
+     * @param alpha   The q level of the test.
      */
     public IndTestConditionalCorrelation(DataSet dataSet, double alpha) {
         if (!(dataSet.isContinuous())) {
@@ -91,7 +100,7 @@ public final class IndTestConditionalCorrelation implements IndependenceTest {
         }
 
         if (!(alpha >= 0 && alpha <= 1)) {
-                throw new IllegalArgumentException("Alpha mut be in [0, 1]");
+                throw new IllegalArgumentException("Q mut be in [0, 1]");
         }
 
         List<Node> nodes = dataSet.getVariables();
@@ -106,6 +115,7 @@ public final class IndTestConditionalCorrelation implements IndependenceTest {
         for (int i = 0; i < variables.size(); i++) varNames.add(variables.get(i).getName());
 
         this.cci = new Cci(data, varNames, alpha);
+        this.cci.setNumFunctions(getNumFunctions());
 
         indices = new HashMap<>();
 
@@ -129,8 +139,6 @@ public final class IndTestConditionalCorrelation implements IndependenceTest {
         List<String> _z = new ArrayList<>();
         for (Node node : z) _z.add(node.getName());
         boolean independent = cci.isIndependent(_x, _y, _z);
-
-//        System.out.println(Runtime.getRuntime().freeMemory());
 
         if (verbose) {
             if (independent) {
@@ -178,7 +186,7 @@ public final class IndTestConditionalCorrelation implements IndependenceTest {
      * @return the probability associated with the most recently computed independence test.
      */
     public double getPValue() {
-        return cci.getQ();
+        return cci.getScore();
     }
 
     /**
@@ -275,7 +283,7 @@ public final class IndTestConditionalCorrelation implements IndependenceTest {
      * @return a string representation of this test.
      */
     public String toString() {
-        return "Conditional Correlation, alpha = " + nf.format(getAlpha());
+        return "Conditional Correlation, q = " + nf.format(getAlpha());
     }
 
     public boolean isVerbose() {
@@ -286,8 +294,16 @@ public final class IndTestConditionalCorrelation implements IndependenceTest {
         this.verbose = verbose;
     }
 
-    //==================================PRIVATE METHODS================================
+    /**
+     * Number of functions to use in (truncated) basis.
+     */
+    public int getNumFunctions() {
+        return numFunctions;
+    }
 
+    public void setNumFunctions(int numFunctions) {
+        this.numFunctions = numFunctions;
+    }
 }
 
 

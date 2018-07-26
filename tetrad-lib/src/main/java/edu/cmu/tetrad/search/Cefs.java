@@ -245,7 +245,7 @@ public final class Cefs {
 //        // or children of adjacencies to the target. Call this set PCPC.
 //        LogUtils.getInstance().info("BEGINNING step 3 (prune PCPC).");
 //
-//        for (Node v : graph.getAdjacentNodes(getTarget())) {
+//        for (Node v : graph.getAdjacentNodes(getMinBeta())) {
 //            for (Node w : graph.getAdjacentNodes(v)) {
 //                if (getVisited().contains(w)) {
 //                    continue;
@@ -274,7 +274,7 @@ public final class Cefs {
 //        LogUtils.getInstance().info("BEGINNING step 5 (Trim graph to {T} U PC U " +
 //                "{Parents(Children(T))}).");
 
-//        MbUtils.trimToMbNodes(graph, getTarget());
+//        MbUtils.trimToMbNodes(graph, getMinBeta());
         MbUtils.trimToAdjacents(graph, target);
 
 //        LogUtils.getInstance().fine(
@@ -283,8 +283,8 @@ public final class Cefs {
 //
 //        LogUtils.getInstance().info("BEGINNING step 6 (Remove edges among P and P of C).");
 //
-//        MbUtils.trimEdgesAmongParents(graph, getTarget());
-//        MbUtils.trimEdgesAmongParentsOfChildren(graph, getTarget());
+//        MbUtils.trimEdgesAmongParents(graph, getMinBeta());
+//        MbUtils.trimEdgesAmongParentsOfChildren(graph, getMinBeta());
 
         TetradLogger.getInstance().log("graph", "After step 6 (Remove edges among P and P of C)" + graph);
 //        TetradLogger.getInstance().log("details", "Bounds: ");
@@ -365,6 +365,10 @@ public final class Cefs {
      */
     public int getDepth() {
         return this.depth;
+    }
+
+    public void setDepth(int depth) {
+        this.depth = depth;
     }
 
     /**
@@ -464,7 +468,7 @@ public final class Cefs {
         TetradLogger.getInstance().log("pruning", "Trying to remove edges adjacent to node " + node +
                 ", depth = " + depth + ".");
 
-        // Otherwise, try removing all other edges adjacent node node. Return
+        // Otherwise, try removing all other edges adjacent node node. NodeEffects
         // true if more edges could be removed at the next depth.
         List<Node> a = new LinkedList<>(graph.getAdjacentNodes(node));
 
