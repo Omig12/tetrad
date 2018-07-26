@@ -46,6 +46,7 @@ public class SelectionBiasSimulationTESTWISE implements Simulation {
             if (parameters.getBoolean("differentGraphs") && i > 0) {
                 graph = randomGraph.createGraph(parameters);
             }
+            graph.setPag(true);
             graphs.add(graph);
 //            System.out.println("True graph: " + graph);
             int minCategories = parameters.getInt("minCategories");
@@ -58,7 +59,13 @@ public class SelectionBiasSimulationTESTWISE implements Simulation {
             DataSet dataSet = simulate(selection.biasGraph, parameters);
             //noinspection SpellCheckingInspection
 //            System.out.println("Bias Dataset: " + dataSet);
-            dataSet = selection.BiasDataCellAlt(dataSet);
+            if ((boolean) parameters.get("missingAtRandom")){
+                dataSet = selection.BiasDataCell(dataSet);
+            }
+            else {
+                dataSet = selection.BiasDataCellAlt(dataSet);
+            }
+
             dataSet.setName("" + (i + 1));
             //noinspection SpellCheckingInspection
 //            System.out.println("Clean Dataset: " + dataSet);
@@ -108,6 +115,7 @@ public class SelectionBiasSimulationTESTWISE implements Simulation {
         parameters.add("differentGraphs");
         parameters.add("sampleSize");
         parameters.add("saveLatentVars");
+        parameters.add("missingAtRandom");
 
         return parameters;
     }
@@ -134,9 +142,9 @@ public class SelectionBiasSimulationTESTWISE implements Simulation {
             int uvars = graph.getNumNodes() / 2;
             for (int i = uvars; i < graph.getNumNodes(); i++) {
 //                double p = RandomUtil.getInstance().nextUniform(lower, upper);
-                double p = RandomUtil.getInstance().nextUniform(lower, upper);
-                p = p * p * p;
+//                System.out.println("P : " + p);
                 for (int r = 0; r < im.getNumRows(i); r++) {
+                    double p = Math.pow(RandomUtil.getInstance().nextUniform(lower, upper), 2);
                     im.setProbability(i, r, 0, p);
                     im.setProbability(i, r, 1, 1 - p);
                 }

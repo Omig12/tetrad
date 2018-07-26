@@ -19,9 +19,9 @@ import java.util.List;
 
 public class SelectionBias {
 
-    private final Graph trueGraph;
+    public Graph trueGraph;
     private final int biasedEdges;
-    public final Graph biasGraph;
+    public Graph biasGraph;
     private final BayesPm pm;
     @SuppressWarnings("FieldCanBeLocal")
     private List<Node> trueNodes;
@@ -86,12 +86,26 @@ public class SelectionBias {
             }
         }
 
+
 //        System.out.println("B data: " + dataSet);
         int[] cols = new int[vars];
         for (int i = 0; i < vars; i++) {
             cols[i] = (i + vars);
         }
         biasData.removeCols(cols);
+
+        List<Integer> removed = new ArrayList<>();
+        for (int i = 0; i < biasData.getNumRows(); i++) {
+            int count = 0;
+            for (int j = 0; j < vars; j++) {
+                if (biasData.getInt(i, j) == -99) {
+                    count++;
+                }
+            }
+            if (vars - count < 2) { removed.add(i);}
+        }
+        biasData.removeRows(Ints.toArray(removed));
+
         return biasData;
     }
 

@@ -360,6 +360,7 @@ public class Comparison {
             int i = 0;
 
             for (SimulationWrapper simulation : simulationWrappers) {
+                out.println(simulation.getTrueGraph(i));
                 out.print("Simulation " + (++i) + ": ");
                 out.println(simulation.getDescription());
                 out.println();
